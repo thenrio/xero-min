@@ -8,6 +8,8 @@ module Xero
       self.template_dir = template_dir || File.expand_path('../templates', __FILE__)
     end
 
+    # Public : renders a single entity with an infered template
+    # eg : render(contact: {first_name: 'me'}) will render #{template_dir}/contact.xml.erb with {first_name: 'me'} as lvar
     def render(locals={})
       erb = ERB.new(read_template(infered_template(locals.keys.first)))
       inject_locals(locals)
