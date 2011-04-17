@@ -14,8 +14,10 @@ module Xero
     }
 
     attr_writer :access_token
+    attr_accessor :verbose
 
     def initialize(consumer_key=nil, secret_key=nil, options={})
+      self.verbose = true
       @options = @@options.merge(options)
       @consumer_key, @secret_key  = consumer_key || 'YZJMNTAXYTBJMTYZNGFMMZK0ODGZMW', secret_key || 'WLIHEJM3AJSNFL12M5LXZVB9S9XYX9'
     end
@@ -32,8 +34,7 @@ module Xero
     # Public :
     # post_invoice(xml) {|response| ...}
     def post_invoice(xml, &block)
-      response = request(:put, 'https://api.xero.com/api.xro/2.0/Invoice', xml)
-      parse(response, &block)
+      parse(request(:put, 'https://api.xero.com/api.xro/2.0/Invoice', xml), &block)
     end
     # Public :
     # post_contact(xml) {|response| ...}
@@ -44,8 +45,7 @@ module Xero
     # at this time, does not know how to get on name, email criteria
     # and post fails when duplicate name
     def get_contacts
-      uri = 'https://api.xero.com/api.xro/2.0/Contacts'
-      response = request(get, uri)
+      request(:get, 'https://api.xero.com/api.xro/2.0/Contacts')
     end
 
     # parse response and return or yield response
@@ -60,6 +60,7 @@ module Xero
     end
 
     def fail!(response)
+      puts "#{response.code} => \n#{response.body}"
       doc = Nokogiri::XML(response.body)
       messages = doc.xpath('//Message').to_a.map { |element| element.content }.uniq
       raise Problem, messages.join(', ')
