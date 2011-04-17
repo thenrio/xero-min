@@ -11,7 +11,7 @@ module Xero
     def render(locals={})
       erb = ERB.new(read_template(infered_template(locals.keys.first)))
       inject_locals(locals)
-      erb.result get_binding
+      self.instance_eval {erb.result binding}
     end
 
     def infered_template(sym)
@@ -26,10 +26,6 @@ module Xero
         self.send :instance_variable_set, "@#{symbol}", value
       end
       self
-    end
-
-    def get_binding
-      binding
     end
 
     def read_template(template)
