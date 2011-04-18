@@ -1,0 +1,19 @@
+<Invoice>
+  <Type>ACCREC</Type>
+  <Contact>
+    <ContactID><%= invoice[:contact][:id] %></ContactID>
+  </Contact>
+  <Date><%= Time.now.strftime('%Y-%m-%d') %></Date>
+  <DueDate><%= Time.now.strftime('%Y-%m-%d') %></DueDate>
+  <LineAmountTypes>Exclusive</LineAmountTypes>
+  <LineItems>
+  <% invoice[:items].each do |item| %>
+    <LineItem>
+      <Description><%= item[:description] %></Description>
+      <Quantity><%= item[:quantity] %></Quantity>
+      <UnitAmount><%= item[:price] %></UnitAmount>
+      <AccountCode><%= item[:ref] %></AccountCode>
+    </LineItem>
+  <% end %>
+  </LineItems>
+</Invoice>
