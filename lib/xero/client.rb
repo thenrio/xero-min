@@ -1,19 +1,31 @@
 require 'oauth'
 require 'oauth/signature/rsa/sha1'
-require 'nokogiri'
+require 'oauth/request_proxy/typhoeus_request'
+require 'typhoeus'
+require 'yajl'
+require 'active_support/core_ext/hash/conversions'
 
 module Xero
   class Client
+    # all requests return hash or array, as would parsed json
+    #
+    # xero api does not support to return json content in POST | PUT !!!
+    #
+    # hence, activesupport to parse xml as a hash ...
+    # terrible
+    #
+    @@signature = {
+      signature_method: 'RSA-SHA1',
+      private_key_file: '/Users/thenrio/src/ruby/agile-france-program-selection/keys/xero.rsa'
+    }
     @@options = {
       site: 'https://api.xero.com/api.xro/2.0',
       request_token_path: "/oauth/RequestToken",
       access_token_path: "/oauth/AccessToken",
       authorize_path: "/oauth/Authorize",
-      signature_method: 'RSA-SHA1',
-      private_key_file: '/Users/thenrio/src/ruby/agile-france-program-selection/keys/xero.rsa'
-    }
+    }.merge(@@signature)
 
-    attr_writer :access_token
+    attr_writer :token
     attr_accessor :verbose
 
     def initialize(consumer_key=nil, secret_key=nil, options={})
@@ -22,51 +34,75 @@ module Xero
       @consumer_key, @secret_key  = consumer_key || 'YZJMNTAXYTBJMTYZNGFMMZK0ODGZMW', secret_key || 'WLIHEJM3AJSNFL12M5LXZVB9S9XYX9'
     end
 
-    def access_token
-      @access_token ||= OAuth::AccessToken.new(OAuth::Consumer.new(@consumer_key, @secret_key, @options),
+    def token
+      @token ||= OAuth::AccessToken.new(OAuth::Consumer.new(@consumer_key, @secret_key, @options),
         @consumer_key, @secret_key)
     end
 
-    def request(verb, uri, xml=nil)
-      access_token.request(verb, uri, xml)
+    # Public : post given xml to invoices url
+    # default method is put
+    # yields request to block if present
+    # returns parsed jsoned
+    def post_invoice(xml, options={}, &block)
+      r = request('https://api.xero.com/api.xro/2.0/Invoice', {method: :put, body: xml}.merge(options), &block)
+      queue(r).run
+      parse! r.response
     end
 
-    # Public :
-    # post_invoice(xml) {|response| ...}
-    def post_invoice(xml, &block)
-      parse(request(:put, 'https://api.xero.com/api.xro/2.0/Invoice', xml), &block)
-    end
-    # Public :
-    # post_contact(xml) {|response| ...}
-    def post_contact(xml, &block)
-      parse(request(:put, 'https://api.xero.com/api.xro/2.0/Contact', xml), &block)
+    # Public : post given xml to contacts url
+    # default method is put
+    # yields request to block if present
+    def post_contact(xml, options={}, &block)
+      r = request('https://api.xero.com/api.xro/2.0/Contact', {method: :put, body: xml}.merge(options), &block)
+      queue(r).run
+      parse r.response
     end
 
-    # at this time, does not know how to get on name, email criteria
-    # and post fails when duplicate name
-    def get_contacts
-      request(:get, 'https://api.xero.com/api.xro/2.0/Contacts')
+    # get contacts
+    def get_contacts(options={}, &block)
+      r = request('https://api.xero.com/api.xro/2.0/Contacts',
+        {headers: {'Accept' => 'application/json'}}.merge(options), &block)
+      queue(r).run
+      parse! r.response
     end
 
-    # parse response and return or yield response
-    def parse(response, &block)
-      case response.code.to_i
-        when 200 then
-          return yield(response) unless block.nil?
-        else
-          fail!(response)
-      end
-      response
+    def request(uri, options={}, &block)
+      req = Typhoeus::Request.new(uri, options)
+      helper = OAuth::Client::Helper.new(req, @@signature.merge(consumer: token.consumer, token: token, request_uri: uri))
+      req.headers.merge!({'Authorization' => helper.header})
+      yield req if block_given?
+      req
     end
 
-    def fail!(response)
-      puts "#{response.code} => \n#{response.body}"
-      doc = Nokogiri::XML(response.body)
-      messages = doc.xpath('//Message').to_a.map { |element| element.content }.uniq
-      raise Problem, messages.join(', ')
+    # return parsed json
+    def parse(response)
+       json?(response) ? Yajl::Parser.new.parse(response.body) : Hash.from_xml(response.body)
+    end
+
+    def json?(response)
+      response.headers['Accept'] == 'application/json'
+    end
+
+    # parse response or die unless code is success
+    def parse!(response)
+      body = parse(response)
+      response.success?? body : raise(Problem, body)
+    end
+
+    def queue(request)
+      hydra.queue(request)
+      self
+    end
+
+    def run
+      hydra.run
+    end
+
+    private
+    def hydra
+      @hydra ||= Typhoeus::Hydra.new
     end
   end
-
   class Problem < StandardError
   end
 end
