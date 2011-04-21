@@ -80,7 +80,7 @@ module Xero
     # parse response or die unless code is success
     def parse!(response)
       node = parse(response)
-      response.success?? body : raise(Problem, node.xpath('//Message').to_a.map{|e| e.content}.uniq.join(', '))
+      response.success?? node : raise(Problem, node.xpath('//Message').to_a.map{|e| e.content}.uniq.join(', '))
     end
 
     def queue(request)
