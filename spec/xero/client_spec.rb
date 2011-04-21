@@ -3,8 +3,7 @@ require 'spec_helper'
 require 'xero/client'
 
 class HttpDuck
-  attr_accessor :code, :body
-
+  attr_accessor :code, :body, :response
   def initialize(code=200, body='')
     self.code = code
     self.body = body
@@ -31,27 +30,12 @@ describe Xero::Client do
     end
   end
 
-  describe '#post_invoice' do
-    let(:invoice) {'invoice'}
-    let(:token) {Object.new}
-    let(:client) {Xero::Client.new.tap{|client| client.token = token}}
-
-    it 'should tell self to request invoice url, with payload and using PUT' do
-      client.stubs(:request).with('https://api.xero.com/api.xro/2.0/Invoice', {method: :put, body: invoice}).returns(HttpDuck.new(200))
-      client.post_invoice(invoice)
-    end
-  end
-
   describe "#request" do
     let(:client) {Xero::Client.new}
-    it "accepts default json" do
-      request = client.request('https://api.xero.com/api.xro/2.0/Contacts')
-      request.headers['Accept'].should == 'application/json'
-    end
     it "yields request to block" do
-      accept = 'application/xml'
-      request = client.request('https://api.xero.com/api.xro/2.0/Contacts') {|r| accept = r.headers['Accept']}
-      accept.should == 'application/json'
+      headers = nil
+      request = client.request('https://api.xero.com/api.xro/2.0/Contacts') {|r| headers = r.headers}
+      headers.should == request.headers
     end
   end
 

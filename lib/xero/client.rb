@@ -2,8 +2,7 @@ require 'oauth'
 require 'oauth/signature/rsa/sha1'
 require 'oauth/request_proxy/typhoeus_request'
 require 'typhoeus'
-require 'yajl'
-require 'active_support/core_ext/hash/conversions'
+require 'nokogiri'
 
 module Xero
   class Client
@@ -55,13 +54,12 @@ module Xero
     def post_contact(xml, options={}, &block)
       r = request('https://api.xero.com/api.xro/2.0/Contact', {method: :put, body: xml}.merge(options), &block)
       queue(r).run
-      parse r.response
+      parse! r.response
     end
 
     # get contacts
     def get_contacts(options={}, &block)
-      r = request('https://api.xero.com/api.xro/2.0/Contacts',
-        {headers: {'Accept' => 'application/json'}}.merge(options), &block)
+      r = request('https://api.xero.com/api.xro/2.0/Contacts', options, &block)
       queue(r).run
       parse! r.response
     end
@@ -74,19 +72,15 @@ module Xero
       req
     end
 
-    # return parsed json
+    # return nokogiri node
     def parse(response)
-       json?(response) ? Yajl::Parser.new.parse(response.body) : Hash.from_xml(response.body)
-    end
-
-    def json?(response)
-      response.headers['Accept'] == 'application/json'
+      Nokogiri::XML(response.body)
     end
 
     # parse response or die unless code is success
     def parse!(response)
-      body = parse(response)
-      response.success?? body : raise(Problem, body)
+      node = parse(response)
+      response.success?? body : raise(Problem, node.xpath('//Message').to_a.map{|e| e.content}.uniq.join(', '))
     end
 
     def queue(request)
