@@ -1,6 +1,6 @@
 #encoding: utf-8
 require 'spec_helper'
-require 'xero/client'
+require 'xero-min/client'
 
 class HttpDuck
   attr_accessor :code, :body, :response
@@ -10,28 +10,29 @@ class HttpDuck
   end
 end
 
-describe Xero::Client do
-  describe '#token' do
-    let(:key) {'key'}
-    let(:secret) {'secret'}
-    let(:consumer) {Object.new}
-    let(:token) {Object.new}
+describe '#token' do
+  let(:key) {'key'}
+  let(:secret) {'secret'}
+  let(:consumer) {Object.new}
+  let(:token) {Object.new}
 
-    it 'should lazily initialize token with appropriate parameters' do
-      OAuth::Consumer.stubs(:new).with(key, secret, anything).returns(consumer)
-      OAuth::AccessToken.stubs(:new).with(consumer, key, secret).returns(token)
+  it 'should lazily initialize token with appropriate parameters' do
+    OAuth::Consumer.stubs(:new).with(key, secret, anything).returns(consumer)
+    OAuth::AccessToken.stubs(:new).with(consumer, key, secret).returns(token)
 
-      Xero::Client.new(key, secret).token.should == token
-    end
-
-    it 'should reuse existing token' do
-      client = Xero::Client.new.tap{|client| client.token = token}
-      client.token.should be token
-    end
+    XeroMin::Client.new(key, secret).token.should == token
   end
 
+  it 'should reuse existing token' do
+    client = XeroMin::Client.new.tap{|client| client.token = token}
+    client.token.should be token
+  end
+end
+
+describe XeroMin::Client do
+  let(:client) {XeroMin::Client.new}
+
   describe "#request" do
-    let(:client) {Xero::Client.new}
     it "yields request to block" do
       headers = nil
       request = client.request('https://api.xero.com/api.xro/2.0/Contacts') {|r| headers = r.headers}
@@ -40,7 +41,6 @@ describe Xero::Client do
   end
 
   describe "#queue" do
-    let(:client) {Xero::Client.new}
     let(:request) {Object.new}
     before do
       client.send(:hydra).expects(:queue).with(request)
@@ -53,23 +53,6 @@ describe Xero::Client do
     end
   end
 
-  describe "#run" do
-    let(:client) {Xero::Client.new}
-    it "runs queued requests" do
-      client.send(:hydra).expects(:run)
-      client.run
-    end
-  end
-
-    # describe '#post_company' do
-    #   it 'should post' do
-    #     mock(@access_token).request(:put, 'https://api.xero.com/api.xro/2.0/Contact', 'contact') {
-    #       HttpDuck.new(200)
-    #     }
-    #     company = @connector.post_contact(@company)
-    #     company.invoicing_system_id.should == '123'
-    #   end
-    # end
 
 #     describe 'parse' do
 #       it 'should extract error message when mail is not valid' do

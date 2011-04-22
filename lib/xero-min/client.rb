@@ -4,7 +4,7 @@ require 'oauth/request_proxy/typhoeus_request'
 require 'typhoeus'
 require 'nokogiri'
 
-module Xero
+module XeroMin
   class Client
     # all requests return hash or array, as would parsed json
     #
@@ -44,7 +44,7 @@ module Xero
     # returns parsed jsoned
     def post_invoice(xml, options={}, &block)
       r = request('https://api.xero.com/api.xro/2.0/Invoice', {method: :put, body: xml}.merge(options), &block)
-      queue(r).run
+      run(r)
       parse! r.response
     end
 
@@ -53,14 +53,14 @@ module Xero
     # yields request to block if present
     def post_contact(xml, options={}, &block)
       r = request('https://api.xero.com/api.xro/2.0/Contact', {method: :put, body: xml}.merge(options), &block)
-      queue(r).run
+      run(r)
       parse! r.response
     end
 
     # get contacts
     def get_contacts(options={}, &block)
       r = request('https://api.xero.com/api.xro/2.0/Contacts', options, &block)
-      queue(r).run
+      run(r)
       parse! r.response
     end
 
@@ -88,8 +88,8 @@ module Xero
       self
     end
 
-    def run
-      hydra.run
+    def run(request=nil)
+      (request ? queue(request) : self).hydra.run
     end
 
     private
