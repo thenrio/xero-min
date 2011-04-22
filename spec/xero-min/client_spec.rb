@@ -2,13 +2,10 @@
 require 'spec_helper'
 require 'xero-min/client'
 
-class HttpDuck
-  attr_accessor :code, :body, :response
-  def initialize(code=200, body='')
-    self.code = code
-    self.body = body
-  end
+class MockResponse < Struct.new(:body, :response)
+  def success?; response.nil?; end
 end
+class MockRequest < Struct.new(:response); end
 
 describe '#token' do
   let(:key) {'key'}
@@ -35,6 +32,17 @@ describe "#request" do
     headers = nil
     request = client.request('https://api.xero.com/api.xro/2.0/Contacts') {|r| headers = r.headers}
     headers.should == request.headers
+  end
+end
+
+describe "#get" do
+  let(:client) {XeroMin::Client.new}
+  include XeroMin::Urls
+  it "creates a get request with url infered" do
+    options = {}
+    client.stubs(:request).with(url_for(:contact), options).returns(MockRequest.new(MockResponse.new))
+    client.expects(:run)
+    client.get(:contact, options)
   end
 end
 

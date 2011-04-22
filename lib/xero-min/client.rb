@@ -67,6 +67,12 @@ module XeroMin
       parse! r.response
     end
 
+    def get(sym, options, &block)
+      r = request(url_for(sym), options, &block)
+      run(r)
+      parse! r.response
+    end
+
     def request(uri, options={}, &block)
       req = Typhoeus::Request.new(uri, options)
       helper = OAuth::Client::Helper.new(req, @@signature.merge(consumer: token.consumer, token: token, request_uri: uri))
