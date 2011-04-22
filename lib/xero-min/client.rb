@@ -4,8 +4,11 @@ require 'oauth/request_proxy/typhoeus_request'
 require 'typhoeus'
 require 'nokogiri'
 
+require 'xero-min/urls'
+
 module XeroMin
   class Client
+    include XeroMin::Urls
     # all requests return hash or array, as would parsed json
     #
     # xero api does not support to return json content in POST | PUT !!!

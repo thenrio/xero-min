@@ -29,27 +29,25 @@ describe '#token' do
   end
 end
 
-describe do
+describe "#request" do
   let(:client) {XeroMin::Client.new}
-
-  describe "#request" do
-    it "yields request to block" do
-      headers = nil
-      request = client.request('https://api.xero.com/api.xro/2.0/Contacts') {|r| headers = r.headers}
-      headers.should == request.headers
-    end
+  it "yields request to block" do
+    headers = nil
+    request = client.request('https://api.xero.com/api.xro/2.0/Contacts') {|r| headers = r.headers}
+    headers.should == request.headers
   end
+end
 
-  describe "#queue" do
-    let(:request) {Object.new}
-    before do
-      client.send(:hydra).expects(:queue).with(request)
-    end
-    it "queues request" do
-      client.queue(request)
-    end
-    it "returns self" do
-      client.queue(request).should be client
-    end
+describe "#queue" do
+  let(:client) {XeroMin::Client.new}
+  let(:request) {Object.new}
+  before do
+    client.send(:hydra).expects(:queue).with(request)
+  end
+  it "queues request" do
+    client.queue(request)
+  end
+  it "returns self" do
+    client.queue(request).should be client
   end
 end
