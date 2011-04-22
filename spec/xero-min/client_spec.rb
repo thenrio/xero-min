@@ -29,7 +29,7 @@ describe '#token' do
   end
 end
 
-describe XeroMin::Client do
+describe do
   let(:client) {XeroMin::Client.new}
 
   describe "#request" do
@@ -52,50 +52,4 @@ describe XeroMin::Client do
       client.queue(request).should be client
     end
   end
-
-
-#     describe 'parse' do
-#       it 'should extract error message when mail is not valid' do
-#         xml = <<XML
-# <ApiException>
-#   <ErrorNumber>10</ErrorNumber>
-#   <Type>ValidationException</Type>
-#   <Message>A validation exception occurred</Message>
-#   <Elements>
-#     <DataContractBase xsi:type="Invoice">
-#       <ValidationErrors>
-#         <ValidationError>
-#           <Message>Email address must be valid.</Message>
-#         </ValidationError>
-#       </ValidationErrors>
-#       <Reference />
-#       <Type>ACCREC</Type>
-#       <Contact>
-#         <ValidationErrors>
-#           <ValidationError>
-#             <Message>Email address must be valid.</Message>
-#           </ValidationError>
-#         </ValidationErrors>
-#     </DataContractBase>
-#   </Elements>
-# </ApiException>
-# XML
-#         response = HttpDuck.new(400, xml)
-#         message = 'A validation exception occurred, Email address must be valid.'
-#         lambda { client.parse(response) }.should raise_error Xero::Problem, message
-#       end
-#
-#       it 'should extract error code and message' do
-#         xml = <<XML
-# <ApiException>
-#   <ErrorNumber>14</ErrorNumber>
-#   <Type>PostDataInvalidException</Type>
-#   <Message>The string '20100510' is not a valid AllXsd value.</Message>
-# </ApiException>
-# XML
-#         response = HttpDuck.new(400, xml)
-#         message = 'The string \'20100510\' is not a valid AllXsd value.'
-#         lambda { client.parse(response) }.should raise_error Xero::Problem, message
-#       end
-#     end
 end
