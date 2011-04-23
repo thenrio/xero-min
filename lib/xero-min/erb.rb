@@ -25,7 +25,7 @@ module Xero
       hash.each_pair do |key, value|
         symbol = key.to_s
         class << self;self;end.module_eval("attr_accessor :#{symbol}")
-        self.send :instance_variable_set, "@#{symbol}", value
+        self.send "#{symbol}=", value
       end
       self
     end
