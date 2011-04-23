@@ -68,9 +68,7 @@ module XeroMin
     end
 
     def get(sym_or_url, options={}, &block)
-      r = request(sym_or_url, options, &block)
-      run(r)
-      parse! r.response
+      request(sym_or_url, options, &block)
     end
 
     def get!(sym_or_url, options={}, &block)

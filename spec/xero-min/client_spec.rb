@@ -47,22 +47,7 @@ describe "#request" do
   end
 end
 
-describe "#get" do
-  let(:client) {XeroMin::Client.new}
-  include XeroMin::Urls
-
-  context "with a symbol" do
-    it "creates and run a get request with url infered when given symbol" do
-      options = {}
-      client.stubs(:request).with(:contact, options).returns(MockRequest.new(MockResponse.new))
-      client.expects(:run)
-
-      client.get(:contact, options)
-    end
-  end
-end
-
-[:put, :post].each do |method|
+[:get, :put, :post].each do |method|
   describe "#{method}" do
     let(:client) {XeroMin::Client.new}
     let(:google) {'http://google.com'}
