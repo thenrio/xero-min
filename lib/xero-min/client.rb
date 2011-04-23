@@ -67,15 +67,15 @@ module XeroMin
       parse! r.response
     end
 
-    def get(sym, options, &block)
+    def get(sym, options={}, &block)
       r = request(url_for(sym), options, &block)
       run(r)
       parse! r.response
     end
 
-    def request(uri, options={}, &block)
-      req = Typhoeus::Request.new(uri, options)
-      helper = OAuth::Client::Helper.new(req, @@signature.merge(consumer: token.consumer, token: token, request_uri: uri))
+    def request(url, options={}, &block)
+      req = Typhoeus::Request.new(url, options)
+      helper = OAuth::Client::Helper.new(req, @@signature.merge(consumer: token.consumer, token: token, request_uri: url))
       req.headers.merge!({'Authorization' => helper.header})
       yield req if block_given?
       req
