@@ -67,13 +67,18 @@ module XeroMin
       parse! r.response
     end
 
-    def get(sym, options={}, &block)
-      r = request(url_for(sym), options, &block)
+    def get(sym_or_url, options={}, &block)
+      r = request(sym_or_url, options, &block)
       run(r)
       parse! r.response
     end
 
-    def request(url, options={}, &block)
+    def put(sym_or_url, options={}, &block)
+      request(sym_or_url, {method: :put}.merge(options), &block)
+    end
+
+    def request(sym_or_url, options={}, &block)
+      url = (sym_or_url.is_a?(Symbol) ? url_for(sym_or_url) : sym_or_url)
       req = Typhoeus::Request.new(url, options)
       helper = OAuth::Client::Helper.new(req, @@signature.merge(consumer: token.consumer, token: token, request_uri: url))
       req.headers.merge!({'Authorization' => helper.header})
@@ -101,7 +106,7 @@ module XeroMin
       (request ? queue(request) : self).hydra.run
     end
 
-    private
+    protected
     def hydra
       @hydra ||= Typhoeus::Hydra.new
     end

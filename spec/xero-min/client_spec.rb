@@ -28,23 +28,49 @@ end
 
 describe "#request" do
   let(:client) {XeroMin::Client.new}
+  let(:google) {'http://google.com'}
   it "yields request to block" do
     headers = nil
     request = client.request('https://api.xero.com/api.xro/2.0/Contacts') {|r| headers = r.headers}
     headers.should == request.headers
+  end
+  context "with a string as url" do
+    it "use it" do
+      client.request(google).url.should == google
+    end
+  end
+  context "with a symbol as url" do
+    it "pipes url to XeroMin::Urls" do
+      client.stubs(:url_for).with(:google).returns(google)
+      client.request(:google).url.should == google
+    end
   end
 end
 
 describe "#get" do
   let(:client) {XeroMin::Client.new}
   include XeroMin::Urls
-  it "creates a get request with url infered" do
-    options = {}
-    client.stubs(:request).with(url_for(:contact), options).returns(MockRequest.new(MockResponse.new))
-    client.expects(:run)
-    client.get(:contact, options)
+
+  context "with a symbol" do
+    it "creates and run a get request with url infered when given symbol" do
+      options = {}
+      client.stubs(:request).with(:contact, options).returns(MockRequest.new(MockResponse.new))
+      client.expects(:run)
+
+      client.get(:contact, options)
+    end
   end
 end
+
+describe "#put" do
+  let(:client) {XeroMin::Client.new}
+  let(:google) {'http://google.com'}
+  it "set put method in headers" do
+    r = client.put(google)
+    r.method.should == :put
+  end
+end
+
 
 describe "#queue" do
   let(:client) {XeroMin::Client.new}
