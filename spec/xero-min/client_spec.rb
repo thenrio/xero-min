@@ -47,6 +47,20 @@ describe "#request" do
   end
 end
 
+describe "#queue" do
+  let(:client) {XeroMin::Client.new}
+  let(:request) {Object.new}
+  before do
+    client.send(:hydra).expects(:queue).with(request)
+  end
+  it "queues request" do
+    client.queue(request)
+  end
+  it "returns self" do
+    client.queue(request).should be client
+  end
+end
+
 [:get, :put, :post].each do |method|
   describe "#{method}" do
     let(:client) {XeroMin::Client.new}
@@ -63,7 +77,7 @@ end
   end
 end
 
-[:get].each do |method|
+[:get, :put, :post].each do |method|
   describe "#{method}!" do
     let(:client) {XeroMin::Client.new}
     let(:google) {'http://google.com'}
@@ -76,18 +90,3 @@ end
   end
 end
 
-
-
-describe "#queue" do
-  let(:client) {XeroMin::Client.new}
-  let(:request) {Object.new}
-  before do
-    client.send(:hydra).expects(:queue).with(request)
-  end
-  it "queues request" do
-    client.queue(request)
-  end
-  it "returns self" do
-    client.queue(request).should be client
-  end
-end

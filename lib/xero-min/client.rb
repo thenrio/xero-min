@@ -41,20 +41,6 @@ module XeroMin
         @consumer_key, @secret_key)
     end
 
-    def get!(sym_or_url, options={}, &block)
-      r = get(sym_or_url, options, &block)
-      run(r)
-      parse! r.response
-    end
-
-    [:get, :put, :post].each do |method|
-      module_eval <<-EOS, __FILE__, __LINE__ + 1
-        def #{method}(sym_or_url, options={}, &block)
-          request(sym_or_url, {method: :#{method}}.merge(options), &block)
-        end
-      EOS
-    end
-
     def request(sym_or_url, options={}, &block)
       url = (sym_or_url.is_a?(Symbol) ? url_for(sym_or_url) : sym_or_url)
       req = Typhoeus::Request.new(url, options)
@@ -82,6 +68,19 @@ module XeroMin
 
     def run(request=nil)
       (request ? queue(request) : self).hydra.run
+    end
+
+    [:get, :put, :post].each do |method|
+      module_eval <<-EOS, __FILE__, __LINE__ + 1
+        def #{method}(sym_or_url, options={}, &block)
+          request(sym_or_url, {method: :#{method}}.merge(options), &block)
+        end
+        def #{method}!(sym_or_url, options={}, &block)
+          r = #{method}(sym_or_url, options, &block)
+          run(r)
+          parse! r.response
+        end
+      EOS
     end
 
     protected
