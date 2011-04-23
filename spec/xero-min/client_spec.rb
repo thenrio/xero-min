@@ -62,22 +62,32 @@ describe "#get" do
   end
 end
 
-[:put].each do |method|
+[:put, :post].each do |method|
   describe "#{method}" do
     let(:client) {XeroMin::Client.new}
     let(:google) {'http://google.com'}
     let(:xml) {'ZOMG!'}
     it "uses #{method} method" do
       r = client.send(method, google)
-      r.method.should == :put
+      r.method.should == method
     end
-    it "initialize body with xml" do
-      r = client.send(method, google, xml)
+    it "can initialize body with xml" do
+      r = client.send(method, google, body: xml)
       r.body.should == xml
     end
   end
 end
 
+describe "get!" do
+  let(:client) {XeroMin::Client.new}
+  let(:google) {'http://google.com'}
+  it "creates and runs a get request" do
+    request = MockRequest.new(MockResponse.new)
+    client.stubs(:get).with(google, {}).returns(request)
+    client.stubs(:run).with(request)
+    client.get!(google)
+  end
+end
 
 
 describe "#queue" do

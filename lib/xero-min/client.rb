@@ -46,7 +46,7 @@ module XeroMin
     # yields request to block if present
     # returns parsed jsoned
     def post_invoice(xml, options={}, &block)
-      r = request('https://api.xero.com/api.xro/2.0/Invoice', {method: :put, body: xml}.merge(options), &block)
+      r = request('https://api.xero.com/api.xro/2.0/Invoice', {method: :put}.merge(options), &block)
       run(r)
       parse! r.response
     end
@@ -55,7 +55,7 @@ module XeroMin
     # default method is put
     # yields request to block if present
     def post_contact(xml, options={}, &block)
-      r = request('https://api.xero.com/api.xro/2.0/Contact', {method: :put, body: xml}.merge(options), &block)
+      r = request('https://api.xero.com/api.xro/2.0/Contact', {method: :put}.merge(options), &block)
       run(r)
       parse! r.response
     end
@@ -73,8 +73,18 @@ module XeroMin
       parse! r.response
     end
 
-    def put(sym_or_url, xml=nil, options={}, &block)
-      request(sym_or_url, {method: :put, body: xml}.merge(options), &block)
+    def get!(sym_or_url, options={}, &block)
+      r = get(sym_or_url, options, &block)
+      run(r)
+      parse! r.response
+    end
+
+    def put(sym_or_url, options={}, &block)
+      request(sym_or_url, {method: :put}.merge(options), &block)
+    end
+
+    def post(sym_or_url, options={}, &block)
+      request(sym_or_url, {method: :post}.merge(options), &block)
     end
 
     def request(sym_or_url, options={}, &block)
