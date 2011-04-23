@@ -41,10 +41,6 @@ module XeroMin
         @consumer_key, @secret_key)
     end
 
-    def get(sym_or_url, options={}, &block)
-      request(sym_or_url, options, &block)
-    end
-
     def get!(sym_or_url, options={}, &block)
       r = get(sym_or_url, options, &block)
       run(r)
@@ -67,6 +63,7 @@ module XeroMin
       yield req if block_given?
       req
     end
+    alias_method :get, :request
 
     # return nokogiri node
     def parse(response)
