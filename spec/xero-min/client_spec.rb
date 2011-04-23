@@ -62,19 +62,22 @@ describe "#get" do
   end
 end
 
-describe "#put" do
-  let(:client) {XeroMin::Client.new}
-  let(:google) {'http://google.com'}
-  let(:xml) {'ZOMG!'}
-  it "uses put method" do
-    r = client.put(google)
-    r.method.should == :put
-  end
-  it "initialize body with xml" do
-    r = client.put(google, xml)
-    r.body.should == xml
+[:put].each do |method|
+  describe "#{method}" do
+    let(:client) {XeroMin::Client.new}
+    let(:google) {'http://google.com'}
+    let(:xml) {'ZOMG!'}
+    it "uses #{method} method" do
+      r = client.send(method, google)
+      r.method.should == :put
+    end
+    it "initialize body with xml" do
+      r = client.send(method, google, xml)
+      r.body.should == xml
+    end
   end
 end
+
 
 
 describe "#queue" do
