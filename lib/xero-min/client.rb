@@ -73,8 +73,8 @@ module XeroMin
       parse! r.response
     end
 
-    def put(sym_or_url, options={}, &block)
-      request(sym_or_url, {method: :put}.merge(options), &block)
+    def put(sym_or_url, xml=nil, options={}, &block)
+      request(sym_or_url, {method: :put, body: xml}.merge(options), &block)
     end
 
     def request(sym_or_url, options={}, &block)

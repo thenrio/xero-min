@@ -65,9 +65,14 @@ end
 describe "#put" do
   let(:client) {XeroMin::Client.new}
   let(:google) {'http://google.com'}
-  it "set put method in headers" do
+  let(:xml) {'ZOMG!'}
+  it "uses put method" do
     r = client.put(google)
     r.method.should == :put
+  end
+  it "initialize body with xml" do
+    r = client.put(google, xml)
+    r.body.should == xml
   end
 end
 
