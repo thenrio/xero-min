@@ -47,12 +47,12 @@ module XeroMin
       parse! r.response
     end
 
-    def put(sym_or_url, options={}, &block)
-      request(sym_or_url, {method: :put}.merge(options), &block)
-    end
-
-    def post(sym_or_url, options={}, &block)
-      request(sym_or_url, {method: :post}.merge(options), &block)
+    [:get, :put, :post].each do |method|
+      module_eval <<-EOS, __FILE__, __LINE__ + 1
+        def #{method}(sym_or_url, options={}, &block)
+          request(sym_or_url, {method: :#{method}}.merge(options), &block)
+        end
+      EOS
     end
 
     def request(sym_or_url, options={}, &block)
@@ -63,7 +63,6 @@ module XeroMin
       yield req if block_given?
       req
     end
-    alias_method :get, :request
 
     # return nokogiri node
     def parse(response)
