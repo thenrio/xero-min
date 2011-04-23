@@ -41,32 +41,6 @@ module XeroMin
         @consumer_key, @secret_key)
     end
 
-    # Public : post given xml to invoices url
-    # default method is put
-    # yields request to block if present
-    # returns parsed jsoned
-    def post_invoice(xml, options={}, &block)
-      r = request('https://api.xero.com/api.xro/2.0/Invoice', {method: :put}.merge(options), &block)
-      run(r)
-      parse! r.response
-    end
-
-    # Public : post given xml to contacts url
-    # default method is put
-    # yields request to block if present
-    def post_contact(xml, options={}, &block)
-      r = request('https://api.xero.com/api.xro/2.0/Contact', {method: :put}.merge(options), &block)
-      run(r)
-      parse! r.response
-    end
-
-    # get contacts
-    def get_contacts(options={}, &block)
-      r = request('https://api.xero.com/api.xro/2.0/Contacts', options, &block)
-      run(r)
-      parse! r.response
-    end
-
     def get(sym_or_url, options={}, &block)
       request(sym_or_url, options, &block)
     end
