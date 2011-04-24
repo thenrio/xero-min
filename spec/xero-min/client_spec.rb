@@ -13,14 +13,14 @@ describe '#token' do
   let(:consumer) {Object.new}
   let(:token) {Object.new}
 
-  it 'should lazily initialize token with appropriate parameters' do
+  it 'lazily initialize token with appropriate parameters' do
     OAuth::Consumer.stubs(:new).with(key, secret, anything).returns(consumer)
     OAuth::AccessToken.stubs(:new).with(consumer, key, secret).returns(token)
 
     XeroMin::Client.new(key, secret).token.should == token
   end
 
-  it 'should reuse existing token' do
+  it 'reuse existing token' do
     client = XeroMin::Client.new.tap{|client| client.token = token}
     client.token.should be token
   end
@@ -79,11 +79,9 @@ end
   describe "#{method}!" do
     let(:client) {XeroMin::Client.new}
     let(:google) {'http://google.com'}
-    it "creates and runs a #{method} request" do
-      request = MockRequest.new(MockResponse.new)
-      client.stubs(method).with(google, {}).returns(request)
-      client.stubs(:run).with(request)
-      client.send("#{method}!", google)
+    it "executes a #{method} request!" do
+      client.stubs("request!").with(google, {method: method}).returns(404)
+      client.send("#{method}!", google).should == 404
     end
   end
 end

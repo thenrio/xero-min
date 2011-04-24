@@ -41,6 +41,10 @@ module XeroMin
         @consumer_key, @secret_key)
     end
 
+    # Public : create a signed request
+    # url of request is url_for sym_or_url, when sym_or_url is a symbol
+    # available options are the one of a Typhoeus::Request
+    # request is yieled to block when present
     def request(sym_or_url, options={}, &block)
       url = (sym_or_url.is_a?(Symbol) ? url_for(sym_or_url) : sym_or_url)
       req = Typhoeus::Request.new(url, options)
@@ -50,11 +54,17 @@ module XeroMin
       req
     end
 
+    # Public : runs a request
+    def run(request=nil)
+      (request ? queue(request) : self).hydra.run
+    end
+
+    # Public : creates and runs a request and parse! its body
     def request!(sym_or_url, options={}, &block)
       parse!(request(sym_or_url, options, &block).tap{|r| run(r)}.response)
     end
 
-    # return nokogiri node
+    # Public: returns response body parsed as a nokogiri node
     def parse(response)
       Nokogiri::XML(response.body)
     end
@@ -65,31 +75,25 @@ module XeroMin
       response.success?? node : raise(Problem, node.xpath('//Message').to_a.map{|e| e.content}.uniq.join(', '))
     end
 
-    def queue(request)
-      hydra.queue(request)
-      self
-    end
-
-    def run(request=nil)
-      (request ? queue(request) : self).hydra.run
-    end
-
+    # Public : get, put, and post are shortcut for a request using this verb (question mark available)
     [:get, :put, :post].each do |method|
       module_eval <<-EOS, __FILE__, __LINE__ + 1
         def #{method}(sym_or_url, options={}, &block)
           request(sym_or_url, {method: :#{method}}.merge(options), &block)
         end
         def #{method}!(sym_or_url, options={}, &block)
-          r = #{method}(sym_or_url, options, &block)
-          run(r)
-          parse! r.response
+          request!(sym_or_url, {method: :#{method}}.merge(options), &block)
         end
       EOS
     end
 
-    protected
+    private
     def hydra
       @hydra ||= Typhoeus::Hydra.new
+    end
+    def queue(request)
+      hydra.queue(request)
+      self
     end
   end
   class Problem < StandardError
