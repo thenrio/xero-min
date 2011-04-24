@@ -27,22 +27,13 @@ module XeroMin
       authorize_path: "/oauth/Authorize",
     }.merge(@@signature)
 
-    attr_writer :token
-    attr_accessor :verbose
-
     def initialize(consumer_key=nil, secret_key=nil, options={})
-      self.verbose = true
       @options = @@options.merge(options)
       @consumer_key, @secret_key  = consumer_key || 'YZJMNTAXYTBJMTYZNGFMMZK0ODGZMW', secret_key || 'WLIHEJM3AJSNFL12M5LXZVB9S9XYX9'
     end
 
-    def token
-      @token ||= OAuth::AccessToken.new(OAuth::Consumer.new(@consumer_key, @secret_key, @options),
-        @consumer_key, @secret_key)
-    end
-
-    # Public : create a signed request
-    # url of request is url_for sym_or_url, when sym_or_url is a symbol
+    # Public : creates a signed request
+    # url of request is XeroMin::Urls.url_for sym_or_url, when sym_or_url is a symbol
     # available options are the one of a Typhoeus::Request
     # request is yieled to block when present
     def request(sym_or_url, options={}, &block)
@@ -69,7 +60,7 @@ module XeroMin
       Nokogiri::XML(response.body)
     end
 
-    # parse response or die unless code is success
+    # Public : parse response or die unless response is success
     def parse!(response)
       node = parse(response)
       response.success?? node : raise(Problem, node.xpath('//Message').to_a.map{|e| e.content}.uniq.join(', '))
@@ -94,6 +85,10 @@ module XeroMin
     def queue(request)
       hydra.queue(request)
       self
+    end
+    def token
+      @token ||= OAuth::AccessToken.new(OAuth::Consumer.new(@consumer_key, @secret_key, @options),
+        @consumer_key, @secret_key)
     end
   end
   class Problem < StandardError

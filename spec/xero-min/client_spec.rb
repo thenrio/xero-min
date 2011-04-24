@@ -7,25 +7,6 @@ class MockResponse < Struct.new(:body, :response)
 end
 class MockRequest < Struct.new(:response); end
 
-describe '#token' do
-  let(:key) {'key'}
-  let(:secret) {'secret'}
-  let(:consumer) {Object.new}
-  let(:token) {Object.new}
-
-  it 'lazily initialize token with appropriate parameters' do
-    OAuth::Consumer.stubs(:new).with(key, secret, anything).returns(consumer)
-    OAuth::AccessToken.stubs(:new).with(consumer, key, secret).returns(token)
-
-    XeroMin::Client.new(key, secret).token.should == token
-  end
-
-  it 'reuse existing token' do
-    client = XeroMin::Client.new.tap{|client| client.token = token}
-    client.token.should be token
-  end
-end
-
 describe "#request" do
   let(:client) {XeroMin::Client.new}
   let(:google) {'http://google.com'}
@@ -83,5 +64,24 @@ end
       client.stubs("request!").with(google, {method: method}).returns(404)
       client.send("#{method}!", google).should == 404
     end
+  end
+end
+
+describe 'private #token' do
+  let(:key) {'key'}
+  let(:secret) {'secret'}
+  let(:consumer) {Object.new}
+  let(:token) {Object.new}
+
+  it 'lazily initialize token with appropriate parameters' do
+    OAuth::Consumer.stubs(:new).with(key, secret, anything).returns(consumer)
+    OAuth::AccessToken.stubs(:new).with(consumer, key, secret).returns(token)
+
+    XeroMin::Client.new(key, secret).send(:token).should == token
+  end
+
+  it 'reuse existing token' do
+    cli = XeroMin::Client.new
+    cli.send(:token).should be cli.send(:token)
   end
 end
