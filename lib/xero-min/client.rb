@@ -50,6 +50,10 @@ module XeroMin
       req
     end
 
+    def request!(sym_or_url, options={}, &block)
+      parse!(request(sym_or_url, options, &block).tap{|r| run(r)}.response)
+    end
+
     # return nokogiri node
     def parse(response)
       Nokogiri::XML(response.body)

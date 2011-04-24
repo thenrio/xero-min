@@ -47,17 +47,15 @@ describe "#request" do
   end
 end
 
-describe "#queue" do
+describe "#request!" do
   let(:client) {XeroMin::Client.new}
-  let(:request) {Object.new}
-  before do
-    client.send(:hydra).expects(:queue).with(request)
-  end
-  it "queues request" do
-    client.queue(request)
-  end
-  it "returns self" do
-    client.queue(request).should be client
+  let(:google) {'http://google.com'}
+  it "runs request and parse it" do
+    request = MockRequest.new(MockResponse.new)
+    client.stubs(:request).with(google, {}).returns(request)
+    client.expects(:run).with(request)
+    client.expects(:parse!).with(request.response)
+    client.request!(google)
   end
 end
 
@@ -89,4 +87,3 @@ end
     end
   end
 end
-
