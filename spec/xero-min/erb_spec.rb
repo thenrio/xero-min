@@ -1,8 +1,8 @@
 require 'spec_helper'
 require 'xero-min/erb'
 
-describe Xero::Erb do
-  let(:erb) {Xero::Erb.new}
+describe XeroMin::Erb do
+  let(:erb) {XeroMin::Erb.new}
   describe "#template_dir" do
     it "is default ./templates from source file" do
       erb.template_dir.should =~ %r(xero-min/templates$)

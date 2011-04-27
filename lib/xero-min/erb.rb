@@ -1,6 +1,6 @@
 require 'erb'
 
-module Xero
+module XeroMin
   class Erb
     attr_accessor :template_dir
 
