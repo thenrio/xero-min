@@ -1,1 +1,2 @@
-require 'xero/client'
+require 'xero-min/client'
+require 'xero-min/erb'
