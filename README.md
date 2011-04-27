@@ -40,19 +40,23 @@ extract [id, name] for each contact
 
 note that I attempted to use Accept: application/json, and failed : post and put does not support it, and turning xml to json is as good as xml is ...
 
-Post some data
-==============
+Post! some data
+===============
+lib is raw : you have to post well xml, as it is what xero understand
 
-What xml to post ?
-------------------
+    client.post! :contacts, body: xml
+
+    client.post! 'https://api.xero.com/api.xro/2.0/contacts', body: xml
+
+What xml to post! ?
+-------------------
 XeroMin::Erb implements basic xml building
 
     bill = {id: '4d73c0f91c94a2c47500000a', name: 'Billy', first_name: 'Bill', last_name: 'Kid', email: 'bill@kid.com'}
     xml=erb.render contact: bill
 
-and xml will look like this
+and xml should be
 
-    puts xml
     <Contact>
       <ContactNumber>4d73c0f91c94a2c47500000a</ContactNumber>
       <Name>Billy</Name>
@@ -61,12 +65,23 @@ and xml will look like this
       <EmailAddress>bill@kid.com</EmailAddress>
     </Contact>
 
-Actual post
------------
-    doc = client.post! :contacts, body: xml
+see XeroMin::Erb source code for precisions, templates for example, documentation
 
-Get Contact
------------
-    doc = client.get! "#{client.url_for(:contacts)/#{bill.id}}"
+Use anything else you feel more comfortable with
+
+Get!
+====
+    doc = client.get! :contacts
+
+    doc = 'https://api.xero.com/api.xro/2.0/invoices'
+
+    doc = client.get! "#{client.url_for(:contacts)}/#{bill.id}"
 
 
+What is the return value from this post! or a get! ?
+====================================================
+It is a Nokogiri node if post is success, extract what you need
+
+    invoice.ref = node.xpath('/Response/Invoices/Invoice/InvoiceNumber').first.content
+
+Else, it raise a XeroMin::Problem with a message
