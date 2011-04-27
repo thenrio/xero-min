@@ -1,17 +1,20 @@
 # -*- encoding: utf-8 -*-
 $:.push File.expand_path("../lib", __FILE__)
-require "xeroar/version"
+require "xero-min/version"
 
 Gem::Specification.new do |s|
-  s.name        = "xeroar"
-  s.version     = Xeroar::VERSION
+  s.name        = "xero-min"
+  s.version     = XeroMin::VERSION
   s.platform    = Gem::Platform::RUBY
-  s.authors     = ["TODO: Write your name"]
-  s.email       = ["TODO: Write your email address"]
+  s.authors     = ["Thierry Henrio"]
+  s.email       = ["thierry.henrio@gmail.com"]
   s.homepage    = ""
-  s.summary     = %q{TODO: Write a gem summary}
-  s.description = %q{TODO: Write a gem description}
-
+  s.summary     = <<-EOS
+    Minimal xero lib, no model, just wires
+  EOS
+  s.description = <<-EOS
+    Wires are oauth-ruby, typhoeus, nokogiri
+  EOS
   s.rubyforge_project = "xeroar"
 
   s.files         = `git ls-files`.split("\n")
@@ -21,5 +24,6 @@ Gem::Specification.new do |s|
 
   s.add_dependency 'oauth', '~> 0.4'
   s.add_dependency 'nokogiri', '~> 1'
+  s.add_dependency 'typhoeus', '~> 0.2'
   s.add_development_dependency 'rspec', '~> 2'
 end
