@@ -47,7 +47,8 @@ module XeroMin
 
     # Public : runs a request
     def run(request=nil)
-      (request ? queue(request) : self).hydra.run
+      queue(request) if request
+      hydra.run
     end
 
     # Public : creates and runs a request and parse! its body
