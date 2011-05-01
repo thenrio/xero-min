@@ -10,21 +10,26 @@ class MockRequest < Struct.new(:response); end
 describe "#request" do
   let(:client) {XeroMin::Client.new}
   let(:google) {'http://google.com'}
+  let(:xml) {'<Name>Vélo</Name>'}
   it "yields request to block" do
     headers = nil
     request = client.request('https://api.xero.com/api.xro/2.0/Contacts') {|r| headers = r.headers}
     headers.should == request.headers
   end
-  context "with a string as url" do
-    it "use it" do
-      client.request(google).url.should == google
-    end
+  it "can use plain url" do
+    client.request(google).url.should == google
   end
-  context "with a symbol as url" do
-    it "pipes url to XeroMin::Urls" do
-      client.stubs(:url_for).with(:google).returns(google)
-      client.request(:google).url.should == google
-    end
+  it "can use a symbol for an url, using transformation XeroMin::Urls" do
+    client.stubs(:url_for).with(:google).returns(google)
+    client.request(:google).url.should == google
+  end
+  it "can initialize body" do
+    r = client.request google, body: xml
+    r.body.should == xml
+  end
+  it "can use xml option to set body with urlencoded xml" do
+    r = client.request google, xml: xml
+    r.body.should == '%3CName%3EV%C3%A9lo%3C%2FName%3E'
   end
 end
 
@@ -44,14 +49,9 @@ end
   describe "#{method}" do
     let(:client) {XeroMin::Client.new}
     let(:google) {'http://google.com'}
-    let(:xml) {'ZOMG!'}
     it "uses #{method} method" do
       r = client.send(method, google)
       r.method.should == method
-    end
-    it "can initialize body with xml" do
-      r = client.send(method, google, body: xml)
-      r.body.should == xml
     end
   end
 end

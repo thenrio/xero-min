@@ -25,6 +25,7 @@ module XeroMin
       request_token_path: "/oauth/RequestToken",
       access_token_path: "/oauth/AccessToken",
       authorize_path: "/oauth/Authorize",
+      'Content-Type' => 'application/x-www-form-urlencoded; charset=utf-8'
     }.merge(@@signature)
 
     def initialize(consumer_key=nil, secret_key=nil, options={})
@@ -35,10 +36,10 @@ module XeroMin
     # Public : creates a signed request
     # url of request is XeroMin::Urls.url_for sym_or_url, when sym_or_url is a symbol
     # available options are the one of a Typhoeus::Request
-    # request is yieled to block when present
+    # request is yielded to block when present
     def request(sym_or_url, options={}, &block)
       url = (sym_or_url.is_a?(Symbol) ? url_for(sym_or_url) : sym_or_url)
-      req = Typhoeus::Request.new(url, options)
+      req = Typhoeus::Request.new(url, @options.merge(options))
       helper = OAuth::Client::Helper.new(req, @@signature.merge(consumer: token.consumer, token: token, request_uri: url))
       req.headers.merge!({'Authorization' => helper.header})
       yield req if block_given?
