@@ -24,11 +24,11 @@ describe "#request" do
     client.request(:google).url.should == google
   end
   it "can initialize body" do
-    r = client.request google, body: xml
+    r = client.tap{|c| c.body_proc = nil}.request google, body: xml
     r.body.should == xml
   end
   it "can use xml option to set body with urlencoded xml" do
-    r = client.request google, xml: xml
+    r = client.request google, body: xml
     r.body.should == '%3CName%3EV%C3%A9lo%3C%2FName%3E'
   end
 end
@@ -64,6 +64,13 @@ end
       client.stubs("request!").with(google, {method: method}).returns(404)
       client.send("#{method}!", google).should == 404
     end
+  end
+end
+
+describe "#body_proc" do
+  let(:client) {XeroMin::Client.new}
+  it "has default value has a url_encode function" do
+    client.body_proc.should_not be_nil
   end
 end
 

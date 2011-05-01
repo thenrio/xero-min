@@ -3,6 +3,7 @@ require 'oauth/signature/rsa/sha1'
 require 'oauth/request_proxy/typhoeus_request'
 require 'typhoeus'
 require 'nokogiri'
+require 'escape_utils'
 
 require 'xero-min/urls'
 
@@ -28,17 +29,24 @@ module XeroMin
       'Content-Type' => 'application/x-www-form-urlencoded; charset=utf-8'
     }.merge(@@signature)
 
+    # Public : body is transformed using body_proc if present
+    # proc has one param
+    # defaults to `lambda{|body| EscapeUtils.escape_url(body)}`, that is url encode body
+    attr_accessor :body_proc
+
     def initialize(consumer_key=nil, secret_key=nil, options={})
       @options = @@options.merge(options)
       @consumer_key, @secret_key  = consumer_key || 'YZJMNTAXYTBJMTYZNGFMMZK0ODGZMW', secret_key || 'WLIHEJM3AJSNFL12M5LXZVB9S9XYX9'
+      self.body_proc = lambda{|body| EscapeUtils.escape_url(body)}
     end
 
     # Public : creates a signed request
     # url of request is XeroMin::Urls.url_for sym_or_url, when sym_or_url is a symbol
     # available options are the one of a Typhoeus::Request
-    # request is yielded to block when present
+    # request is yielded to block if present
     def request(sym_or_url, options={}, &block)
       url = (sym_or_url.is_a?(Symbol) ? url_for(sym_or_url) : sym_or_url)
+      options[:body] = body_proc.call(options[:body]) if (options[:body] and body_proc)
       req = Typhoeus::Request.new(url, @options.merge(options))
       helper = OAuth::Client::Helper.new(req, @@signature.merge(consumer: token.consumer, token: token, request_uri: url))
       req.headers.merge!({'Authorization' => helper.header})
