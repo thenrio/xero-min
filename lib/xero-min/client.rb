@@ -10,16 +10,9 @@ require 'xero-min/urls'
 module XeroMin
   class Client
     include XeroMin::Urls
-    # all requests return hash or array, as would parsed json
-    #
-    # xero api does not support to return json content in POST | PUT !!!
-    #
-    # hence, activesupport to parse xml as a hash ...
-    # terrible
-    #
+
     @@signature = {
-      signature_method: 'RSA-SHA1',
-      private_key_file: '/Users/thenrio/src/ruby/agile-france-program-selection/keys/xero.rsa'
+      signature_method: 'HMAC-SHA1'
     }
     @@options = {
       site: 'https://api.xero.com/api.xro/2.0',
@@ -36,19 +29,33 @@ module XeroMin
 
     def initialize(consumer_key=nil, secret_key=nil, options={})
       @options = @@options.merge(options)
-      @consumer_key, @secret_key  = consumer_key || 'YZJMNTAXYTBJMTYZNGFMMZK0ODGZMW', secret_key || 'WLIHEJM3AJSNFL12M5LXZVB9S9XYX9'
+      @consumer_key, @secret_key  = consumer_key , secret_key
       self.body_proc = lambda{|body| EscapeUtils.escape_url(body)}
+    end
+
+    # Public returns whether it has already requested an access token
+    def token?
+      !!@token
+    end
+
+    # Public : enables client to act as a private application
+    # resets previous access token if any
+    def private!(private_key_file='keys/xero.rsa')
+      @token = nil if token?
+      @options.merge!({signature_method: 'RSA-SHA1', private_key_file: private_key_file})
+      self
     end
 
     # Public : creates a signed request
     # url of request is XeroMin::Urls.url_for sym_or_url, when sym_or_url is a symbol
     # available options are the one of a Typhoeus::Request
     # request is yielded to block if present
+    # first request ask for access token
     def request(sym_or_url, options={}, &block)
       url = (sym_or_url.is_a?(Symbol) ? url_for(sym_or_url) : sym_or_url)
       options[:body] = body_proc.call(options[:body]) if (options[:body] and body_proc)
       req = Typhoeus::Request.new(url, @options.merge(options))
-      helper = OAuth::Client::Helper.new(req, @@signature.merge(consumer: token.consumer, token: token, request_uri: url))
+      helper = OAuth::Client::Helper.new(req, @options.merge(consumer: token.consumer, token: token, request_uri: url))
       req.headers.merge!({'Authorization' => helper.header})
       yield req if block_given?
       req
@@ -99,6 +106,9 @@ module XeroMin
     def token
       @token ||= OAuth::AccessToken.new(OAuth::Consumer.new(@consumer_key, @secret_key, @options),
         @consumer_key, @secret_key)
+    end
+    def options
+      @options
     end
   end
   class Problem < StandardError

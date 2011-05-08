@@ -1,34 +1,32 @@
 tiny lib for xero
 
-xero api is a pain in the ass : params, structure, documentation
+existing ruby xero libraires are crowded with models : Payroll, Contact, Invoice that map each xml structure available through api
 
-existing xero libraires are bloated with models
+But what if I dont care with Payroll or I have already one ... Will I have to build an XXX::Invoice with mine ?
 
-why ?
+Here is the minimal workflow for a POST request to xero :
 
-I believe we are not comfortable with xml, as xml is not a language supported structure, so go and map xml to class ?
-
-But what if I dont care with Payroll or whatever ?
-
-Do I need some code for it ?
-
-I believe I don't
-
-* send a http request, with optional body and params
-* sign request with oauth protocol
+* send a http request, with xml in body
+* sign request with oauth
 * parse response
 
+What this library does is the minimal wire, that is a functional api to GET|POST|PUT any xero call, with the following workflow
+
+* use your model to build proper xml
+* call xero-min
+* parse response to get data your app need
+
+Library was built and tested for a private app
 
 Abstract
 ========
-Use typhoeus, to configure uri, headers, body, params
+Uses
 
-Use Nokogiri to parse response.
-
+* typhoeus, to configure uri, headers, body, params
+* nokogiri to parse response
 
 Get some data
 =============
-
 You will get a Nokogiri node.
 
 Then you can scrap it and extract what you require, no more, no less
@@ -37,8 +35,6 @@ extract [id, name] for each contact
 -----------------------------------
     doc = client.get! :contacts
     doc.xpath('//Contact').map{|c| ['ContactID', 'Name'].map{|e| c.xpath("./#{e}").text}}
-
-note that I attempted to use Accept: application/json, and failed : post and put does not support it, and turning xml to json is as good as xml is ...
 
 Post! some data
 ===============
@@ -78,8 +74,8 @@ Get!
     doc = client.get! "#{client.url_for(:contacts)}/#{bill.id}"
 
 
-What is the return value from this post! or a get! ?
-====================================================
+What is the return value from post! or get! ?
+=============================================
 It is a Nokogiri node if post is success, extract what you need
 
     invoice.ref = node.xpath('/Response/Invoices/Invoice/InvoiceNumber').first.content

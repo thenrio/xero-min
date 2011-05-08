@@ -7,9 +7,16 @@ class MockResponse < Struct.new(:body, :response)
 end
 class MockRequest < Struct.new(:response); end
 
+def google
+  'http://google.com'
+end
+
+def parse_authorization(header)
+  header['Authorization'].split(',').map{|s| s.strip.gsub("\"", '').split('=')}.reduce({}) {|acc, (k,v)| acc[k]=v; acc}
+end
+
 describe "#request" do
   let(:client) {XeroMin::Client.new}
-  let(:google) {'http://google.com'}
   let(:xml) {'<Name>Vélo</Name>'}
   it "yields request to block" do
     headers = nil
@@ -35,7 +42,6 @@ end
 
 describe "#request!" do
   let(:client) {XeroMin::Client.new}
-  let(:google) {'http://google.com'}
   it "runs request and parse it" do
     request = MockRequest.new(MockResponse.new)
     client.stubs(:request).with(google, {}).returns(request)
@@ -48,7 +54,6 @@ end
 [:get, :put, :post].each do |method|
   describe "#{method}" do
     let(:client) {XeroMin::Client.new}
-    let(:google) {'http://google.com'}
     it "uses #{method} method" do
       r = client.send(method, google)
       r.method.should == method
@@ -59,7 +64,6 @@ end
 [:get, :put, :post].each do |method|
   describe "#{method}!" do
     let(:client) {XeroMin::Client.new}
-    let(:google) {'http://google.com'}
     it "executes a #{method} request!" do
       client.stubs("request!").with(google, {method: method}).returns(404)
       client.send("#{method}!", google).should == 404
@@ -90,5 +94,30 @@ describe 'private #token' do
   it 'reuse existing token' do
     cli = XeroMin::Client.new
     cli.send(:token).should be cli.send(:token)
+  end
+end
+
+describe "signature options" do
+  let(:cli) {XeroMin::Client.new}
+  describe "default to public app behavior" do
+    it "signature is HMAC-SHA1" do
+      authorization = parse_authorization(cli.request(google).headers)
+      assert {authorization['oauth_signature_method'] == 'HMAC-SHA1'}
+    end
+  end
+  describe "#private! authorization" do
+    let(:headers) {cli.private!.request(google).headers}
+    let(:authorization) {parse_authorization(headers)}
+    it "fluently changes signature to RSA-SHA1" do
+      assert {authorization['oauth_signature_method'] == 'RSA-SHA1'}
+    end
+    it "gains a private_key_file option" do
+      assert {headers['pp'] == 'HMAC-SHA1'}
+    end
+  end
+  it "#private! resets headers if called after obtaining an access token" do
+    cli.request(google)
+    authorization = parse_authorization(cli.private!.request(google).headers)
+    assert {authorization['oauth_signature_method'] == 'RSA-SHA1'}
   end
 end
