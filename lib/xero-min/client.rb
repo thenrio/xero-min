@@ -73,14 +73,23 @@ module XeroMin
     end
 
     # Public: returns response body parsed as a nokogiri node
-    def parse(response)
-      Nokogiri::XML(response.body)
+    def self.parse(body)
+      Nokogiri::XML(body)
     end
 
-    # Public : parse response or die unless response is success
+    # try to doctorify failing body
+    def self.diagnose(body)
+      case body
+      when %r(^oauth)
+        EscapeUtils.unescape_url(body).gsub('&', "\n")
+      else
+        Nokogiri::XML(body).xpath('//Message').to_a.map{|e| e.content}.uniq.join("\n")
+      end
+    end
+
+    # Public : parse response or die if response fails
     def parse!(response)
-      node = parse(response)
-      response.success?? node : raise(Problem, node.xpath('//Message').to_a.map{|e| e.content}.uniq.join(', '))
+      response.success?? Client.parse(response.body) : raise(Problem, Client.diagnose(response.body))
     end
 
     # Public : get, put, and post are shortcut for a request using this verb (question mark available)

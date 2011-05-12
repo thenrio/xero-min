@@ -97,6 +97,15 @@ describe 'private #token' do
   end
 end
 
+describe ".diagnose" do
+  it "reports oauth problem" do
+    cypher = "oauth_problem=signature_method_rejected&oauth_problem_advice=No%20certificates%20have%20been%20registered%20for%20the%20consumer"
+    diagnosis = XeroMin::Client.diagnose(cypher)
+    assert {diagnosis == "oauth_problem=signature_method_rejected\noauth_problem_advice=No certificates have been registered for the consumer"}
+  end
+end
+
+
 describe "signature options" do
   let(:cli) {XeroMin::Client.new}
   describe "default to public app behavior" do
@@ -112,7 +121,7 @@ describe "signature options" do
       assert {authorization['oauth_signature_method'] == 'RSA-SHA1'}
     end
     it "gains a private_key_file option" do
-      assert {headers['pp'] == 'HMAC-SHA1'}
+      pending
     end
   end
   it "#private! resets headers if called after obtaining an access token" do
