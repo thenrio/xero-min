@@ -78,18 +78,21 @@ module XeroMin
     end
 
     # try to doctorify failing body
-    def self.diagnose(body)
-      case body
-      when %r(^oauth)
-        EscapeUtils.unescape_url(body).gsub('&', "\n")
+    def self.diagnose(response)
+      diagnosis = case response.code
+      when 400
+        Nokogiri::XML(response.body).xpath('//Message').to_a.map{|e| e.content}.uniq.join("\n")
+      when 401
+        EscapeUtils.unescape_url(response.body).gsub('&', "\n")
       else
-        Nokogiri::XML(body).xpath('//Message').to_a.map{|e| e.content}.uniq.join("\n")
+        response.body
       end
+      "code=#{response.code}\n#{diagnosis}"
     end
 
     # Public : parse response or die if response fails
     def parse!(response)
-      response.success?? Client.parse(response.body) : raise(Problem, Client.diagnose(response.body))
+      response.success?? Client.parse(response.body) : raise(Problem, Client.diagnose(response))
     end
 
     # Public : get, put, and post are shortcut for a request using this verb (question mark available)

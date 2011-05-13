@@ -1,5 +1,7 @@
 *.gem
 .bundle
+.rvmrc
 Gemfile.lock
 pkg/*
-keys
+keys/
+data/

@@ -1,11 +1,7 @@
 #encoding: utf-8
 require 'spec_helper'
 require 'xero-min/client'
-
-class MockResponse < Struct.new(:body, :response)
-  def success?; response.nil?; end
-end
-class MockRequest < Struct.new(:response); end
+require 'ostruct'
 
 def google
   'http://google.com'
@@ -43,7 +39,7 @@ end
 describe "#request!" do
   let(:client) {XeroMin::Client.new}
   it "runs request and parse it" do
-    request = MockRequest.new(MockResponse.new)
+    request = OpenStruct.new(response: OpenStruct.new(code: 200))
     client.stubs(:request).with(google, {}).returns(request)
     client.expects(:run).with(request)
     client.expects(:parse!).with(request.response)
@@ -99,30 +95,19 @@ end
 
 describe ".diagnose" do
   it "reports oauth problem" do
-    cypher = "oauth_problem=signature_method_rejected&oauth_problem_advice=No%20certificates%20have%20been%20registered%20for%20the%20consumer"
-    diagnosis = XeroMin::Client.diagnose(cypher)
-    assert {diagnosis == "oauth_problem=signature_method_rejected\noauth_problem_advice=No certificates have been registered for the consumer"}
+    body = "oauth_problem=signature_method_rejected&oauth_problem_advice=No%20certificates%20have%20been%20registered%20for%20the%20consumer"
+    response = OpenStruct.new(code: 401, body: body)
+    diagnosis = XeroMin::Client.diagnose(response)
+    assert {diagnosis == "code=401\noauth_problem=signature_method_rejected\noauth_problem_advice=No certificates have been registered for the consumer"}
   end
 end
 
 
 describe "signature options" do
   let(:cli) {XeroMin::Client.new}
-  describe "default to public app behavior" do
-    it "signature is HMAC-SHA1" do
-      authorization = parse_authorization(cli.request(google).headers)
-      assert {authorization['oauth_signature_method'] == 'HMAC-SHA1'}
-    end
-  end
-  describe "#private! authorization" do
-    let(:headers) {cli.private!.request(google).headers}
-    let(:authorization) {parse_authorization(headers)}
-    it "fluently changes signature to RSA-SHA1" do
-      assert {authorization['oauth_signature_method'] == 'RSA-SHA1'}
-    end
-    it "gains a private_key_file option" do
-      pending
-    end
+  it "default to public app behavior (HMAC-SHA1)" do
+    authorization = parse_authorization(cli.request(google).headers)
+    assert {authorization['oauth_signature_method'] == 'HMAC-SHA1'}
   end
   it "#private! resets headers if called after obtaining an access token" do
     cli.request(google)
