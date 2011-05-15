@@ -8,14 +8,14 @@ Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
   s.authors     = ["Thierry Henrio"]
   s.email       = ["thierry.henrio@gmail.com"]
-  s.homepage    = ""
+  s.homepage    = "https://github.com/thierryhenrio/xero-min"
   s.summary     = <<-EOS
-    Minimal xero lib, no model, just wires
+    Minimal xero lib, no models, just wires
   EOS
   s.description = <<-EOS
     Wires are oauth-ruby, typhoeus, nokogiri
   EOS
-  s.rubyforge_project = "xeroar"
+  s.rubyforge_project = "xero-min"
 
   s.files         = `git ls-files`.split("\n")
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
