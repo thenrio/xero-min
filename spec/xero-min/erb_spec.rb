@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 require 'spec_helper'
 require 'xero-min/erb'
 
@@ -18,9 +19,12 @@ describe XeroMin::Erb do
   end
 
   describe "#render" do
-    let(:contact) {{name: 'Junio Hamano', first_name: 'Junio', last_name: 'Hamano', email: 'gitster@pobox.com'}}
+    let(:contact) {{name: 'Héloise Dupont', first_name: 'Héloise', last_name: 'Dupont', email: 'heloise@dupont.com'}}
     it "should be nice" do
-      erb.render(contact: contact).should =~ %r(<Name>Junio Hamano</Name>)
+      erb.render(contact: contact).should =~ %r(<Name>Héloise Dupont</Name>)
+    end
+    it "post processes erb output with #post_process_proc, that compacts xml" do
+      erb.render(contact: contact).should =~ %r(^<Contact><ContactNumber>)
     end
   end
 end
