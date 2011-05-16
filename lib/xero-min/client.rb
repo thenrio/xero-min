@@ -87,7 +87,7 @@ module XeroMin
       else
         response.body
       end
-      "code=#{response.code}\n#{diagnosis}"
+      "code=#{response.code}\n#{diagnosis}\nbody=\n#{response.body}"
     end
 
     # Public : parse response or die if response fails

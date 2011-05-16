@@ -98,10 +98,9 @@ describe ".diagnose" do
     body = "oauth_problem=signature_method_rejected&oauth_problem_advice=No%20certificates%20have%20been%20registered%20for%20the%20consumer"
     response = OpenStruct.new(code: 401, body: body)
     diagnosis = XeroMin::Client.diagnose(response)
-    assert {diagnosis == "code=401\noauth_problem=signature_method_rejected\noauth_problem_advice=No certificates have been registered for the consumer"}
+    assert {diagnosis =~ %r(code=401\noauth_problem=signature_method_rejected\noauth_problem_advice=No certificates have been registered for the consumer)}
   end
 end
-
 
 describe "signature options" do
   let(:cli) {XeroMin::Client.new}
