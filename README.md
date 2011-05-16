@@ -6,7 +6,7 @@ But what if I dont care with Payroll or I have already one ... Will I have to bu
 
 Here is the minimal workflow for a POST request to xero :
 
-* send a http request, with xml in body
+* send a http request, with xml in params (in body for PUT, ohnoes oauth)
 * sign request with oauth
 * parse response
 
@@ -44,8 +44,8 @@ lib is raw : you have to post well xml, as it is what xero understand
 
     client.post! 'https://api.xero.com/api.xro/2.0/contacts', body: xml
 
-What xml to post! ?
--------------------
+What xml to post! or put! ?
+---------------------------
 XeroMin::Erb implements basic xml building
 
     bill = {id: '4d73c0f91c94a2c47500000a', name: 'Billy', first_name: 'Bill', last_name: 'Kid', email: 'bill@kid.com'}
@@ -81,3 +81,8 @@ It is a Nokogiri node if post is success, extract what you need
     invoice.ref = node.xpath('/Response/Invoices/Invoice/InvoiceNumber').first.content
 
 Else, it raise a XeroMin::Problem with a message
+
+Caveats
+=======
+use PUT to post data ... or use POST + params: {xml: xml} rather than body: xml with following patch : https://github.com/oauth/oauth-ruby/pull/24
+
