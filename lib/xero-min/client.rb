@@ -77,11 +77,13 @@ module XeroMin
 
     # Public: returns response body if Content-Type is application/pdf or a nokogiri node
     def self.parse(response)
-      case response.headers_hash['Content-Type']
+      case content_type = response.headers_hash['Content-Type']
       when 'application/pdf'
         response.body
-      else
+      when %r(^text/xml)
         Nokogiri::XML(response.body)
+      else
+        raise Problem, "Unsupported Content-Type : #{content_type}"
       end
     end
 

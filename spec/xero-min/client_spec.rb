@@ -126,4 +126,14 @@ describe ".parse" do
     response = OpenStruct.new(code: 401, body: body, headers_hash: {"Content-Type"=>"application/pdf"})
     XeroMin::Client.parse(response).should be body
   end
+  it "returns Nokogiri when ContentType is text/xml" do
+    body = '<foo>bar</foo>'
+    response = OpenStruct.new(code: 401, body: body, headers_hash: {"Content-Type"=>"text/xml; charset=utf-8"})
+    content = XeroMin::Client.parse(response)
+    content.should be_a Nokogiri::XML::Document
+  end
+  it "raises elsewhere (argh)" do
+    response = OpenStruct.new(code: 401, headers_hash: {"Content-Type"=>"application/json"})
+    expect {XeroMin::Client.parse(response)}.to raise_error(XeroMin::Problem, 'Unsupported Content-Type : application/json')
+  end
 end
