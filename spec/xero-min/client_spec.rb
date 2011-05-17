@@ -39,6 +39,10 @@ describe "#request" do
     request.headers['Accept'].should == 'text/xml'
     request.headers['Content-Type'].should == 'application/x-www-form-urlencoded; charset=utf-8'
   end
+  it "handles :accept option as a shortcut to Accept header" do
+    request = client.request google, accept: 'application/pdf'
+    request.headers['Accept'].should == 'application/pdf'
+  end
 end
 
 describe "#request!" do

@@ -57,7 +57,14 @@ module XeroMin
     def request(string_or_url_for, options={}, &block)
       url = (string_or_url_for.is_a?(String) ? string_or_url_for : url_for(string_or_url_for))
       options[:body] = body_proc.call(options[:body]) if (options[:body] and body_proc)
+      accept_option = options.delete(:accept)
+      if accept_option
+        options[:headers] ||= {}
+        options[:headers].merge! 'Accept' => accept_option
+      end
       req = Typhoeus::Request.new(url, @options.merge(options))
+
+      # sign request with oauth
       helper = OAuth::Client::Helper.new(req, @options.merge(consumer: token.consumer, token: token, request_uri: url))
       req.headers.merge!({'Authorization' => helper.header})
       yield req if block_given?
