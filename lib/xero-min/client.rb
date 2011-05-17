@@ -78,8 +78,8 @@ module XeroMin
     end
 
     # Public : creates and runs a request and parse! its body
-    def request!(sym_or_url, options={}, &block)
-      parse!(request(sym_or_url, options, &block).tap{|r| run(r)}.response)
+    def request!(string_or_url_for, options={}, &block)
+      parse!(request(string_or_url_for, options, &block).tap{|r| run(r)}.response)
     end
 
     # Public: returns response body if Content-Type is application/pdf or a nokogiri node
@@ -115,11 +115,11 @@ module XeroMin
     # Public : get, put, and post are shortcut for a request using this verb (question mark available)
     [:get, :put, :post].each do |method|
       module_eval <<-EOS, __FILE__, __LINE__ + 1
-        def #{method}(sym_or_url, options={}, &block)
-          request(sym_or_url, {method: :#{method}}.merge(options), &block)
+        def #{method}(string_or_url_for, options={}, &block)
+          request(string_or_url_for, {method: :#{method}}.merge(options), &block)
         end
-        def #{method}!(sym_or_url, options={}, &block)
-          request!(sym_or_url, {method: :#{method}}.merge(options), &block)
+        def #{method}!(string_or_url_for, options={}, &block)
+          request!(string_or_url_for, {method: :#{method}}.merge(options), &block)
         end
       EOS
     end
