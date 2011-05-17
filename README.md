@@ -6,7 +6,7 @@ But what if I dont care with Payroll or I have already one ... Will I have to bu
 
 Here is the minimal workflow for a POST request to xero :
 
-* send a http request, with xml in params (in body for PUT, ohnoes oauth)
+* send a http request, with xml in params (in body for PUT, ohnoes)
 * sign request with oauth
 * parse response
 
@@ -22,25 +22,58 @@ Abstract
 ========
 Uses
 
-* typhoeus, to configure uri, headers, body, params
-* nokogiri to parse response
+* typhoeus, to configure uri, headers, body, params : any option is passed to request
+* nokogiri to parse xml response
+
+Create a client
+===============
+
+    cli = XeroMin::Client.new('your_consumer_key', 'your_secret_key')
+
+make it behave as a private app
+
+    cli.private!('/path/to/key.rsa')
 
 Get some data
 =============
-You will get a Nokogiri node.
+You will get a Nokogiri node for an xml content type, raw body for pdf, an exception for other returned mime types
 
-Then you can scrap it and extract what you require, no more, no less
+* You can scrap xml data thanks to Nokogiri and extract what you require, no more, no less
+* You can do what you want with pdf, pipe it or write to file ...
+
+specifying what to get
+----------------------
+
+The two following statements are equivalent
+
+    client.get! :invoices
+    client.get! 'https://api.xero.com/api.xro/2.0/Invoices'
+
+    # => get all invoices, default content type is 'text/xml'
+
+To get a particular invoice, the following statements are equivalent
+
+    client.get! 'https://api.xero.com/api.xro/2.0/Invoices/INV-0001'
+    client.get! invoice: 'INV-0001'
+
+    # do not forget braces for first ar
+
+To specify the accepted content type, use either
+
+    client.get! 'https://api.xero.com/api.xro/2.0/Invoices/INV-0001', accept: 'application/json'
+    client.get! {invoice: 'INV-0001'}, accept: 'application/json'
+
 
 extract [id, name] for each contact
 -----------------------------------
     doc = client.get! :contacts
     doc.xpath('//Contact').map{|c| ['ContactID', 'Name'].map{|e| c.xpath("./#{e}").text}}
 
-Post! some data
-===============
-lib is raw : you have to post well xml, as it is what xero understand
+post! or put! some data
+=======================
+lib is raw : you have to post well-formed xml, as it is what xero understand
 
-    client.post! :contacts, body: xml
+    client.put! :contacts, body: xml
 
     client.post! 'https://api.xero.com/api.xro/2.0/contacts', body: xml
 
