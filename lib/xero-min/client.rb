@@ -19,8 +19,10 @@ module XeroMin
       request_token_path: "/oauth/RequestToken",
       access_token_path: "/oauth/AccessToken",
       authorize_path: "/oauth/Authorize",
-      'Accept' => 'text/xml',
-      'Content-Type' => 'application/x-www-form-urlencoded; charset=utf-8'
+      headers: {
+        'Accept' => 'text/xml',
+        'Content-Type' => 'application/x-www-form-urlencoded; charset=utf-8'
+      }
     }.merge(@@signature)
 
     # Public : body is transformed using body_proc if present

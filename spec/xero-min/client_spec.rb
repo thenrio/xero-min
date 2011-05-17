@@ -34,6 +34,11 @@ describe "#request" do
     r = client.request google, body: xml
     r.body.should == '%3CName%3EV%C3%A9lo%3C%2FName%3E'
   end
+  it "has default headers" do
+    request = client.request google
+    request.headers['Accept'].should == 'text/xml'
+    request.headers['Content-Type'].should == 'application/x-www-form-urlencoded; charset=utf-8'
+  end
 end
 
 describe "#request!" do
