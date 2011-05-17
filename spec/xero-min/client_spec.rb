@@ -114,3 +114,11 @@ describe "signature options" do
     assert {authorization['oauth_signature_method'] == 'RSA-SHA1'}
   end
 end
+
+describe ".parse" do
+  it "returns raw content when ContentType is application/pdf" do
+    body = 'a.pdf'
+    response = OpenStruct.new(code: 401, body: body, headers_hash: {"Content-Type"=>"application/pdf"})
+    XeroMin::Client.parse(response).should be body
+  end
+end

@@ -19,6 +19,7 @@ module XeroMin
       request_token_path: "/oauth/RequestToken",
       access_token_path: "/oauth/AccessToken",
       authorize_path: "/oauth/Authorize",
+      'Accept' => 'text/xml',
       'Content-Type' => 'application/x-www-form-urlencoded; charset=utf-8'
     }.merge(@@signature)
 
@@ -47,12 +48,12 @@ module XeroMin
     end
 
     # Public : creates a signed request
-    # url of request is XeroMin::Urls.url_for sym_or_url, when sym_or_url is a symbol
+    # url of request is XeroMin::Urls.url_for sym_or_url, when string_or_url_for is not a String
     # available options are the one of a Typhoeus::Request
     # request is yielded to block if present
     # first request ask for access token
-    def request(sym_or_url, options={}, &block)
-      url = (sym_or_url.is_a?(Symbol) ? url_for(sym_or_url) : sym_or_url)
+    def request(string_or_url_for, options={}, &block)
+      url = (string_or_url_for.is_a?(String) ? string_or_url_for : url_for(string_or_url_for))
       options[:body] = body_proc.call(options[:body]) if (options[:body] and body_proc)
       req = Typhoeus::Request.new(url, @options.merge(options))
       helper = OAuth::Client::Helper.new(req, @options.merge(consumer: token.consumer, token: token, request_uri: url))
@@ -72,12 +73,17 @@ module XeroMin
       parse!(request(sym_or_url, options, &block).tap{|r| run(r)}.response)
     end
 
-    # Public: returns response body parsed as a nokogiri node
-    def self.parse(body)
-      Nokogiri::XML(body)
+    # Public: returns response body if Content-Type is application/pdf or a nokogiri node
+    def self.parse(response)
+      case response.headers_hash['Content-Type']
+      when 'application/pdf'
+        response.body
+      else
+        Nokogiri::XML(response.body)
+      end
     end
 
-    # try to doctorify failing body
+    # try to doctorify failing response
     def self.diagnose(response)
       diagnosis = case response.code
       when 400
@@ -92,7 +98,7 @@ module XeroMin
 
     # Public : parse response or die if response fails
     def parse!(response)
-      response.success?? Client.parse(response.body) : raise(Problem, Client.diagnose(response))
+      response.success?? Client.parse(response) : raise(Problem, Client.diagnose(response))
     end
 
     # Public : get, put, and post are shortcut for a request using this verb (question mark available)
